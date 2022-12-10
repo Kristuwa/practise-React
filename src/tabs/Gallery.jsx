@@ -10,12 +10,18 @@ export class Gallery extends Component {
     page: 1,
     query: '',
   };
-  async componentDidMount() {
-    const { photos, totalPages } = await ImageService.getImages('cars');
-    console.log(photos);
-    console.log(totalPages);
-  }
 
+  async componentDidUpdate(prevProps, prevState) {
+    // const {query, page}=
+    const { page, query } = this.state;
+    if (prevState.query !== query || prevState.page !== page) {
+      const { photos, totalPages } = await ImageService.getImages(query, page);
+
+      this.setState(prevState => {
+        return { photos: [...prevState.photos, ...photos], totalPages };
+      });
+    }
+  }
   getQuery = query => {
     this.setState({ query });
     console.log(query);
@@ -25,6 +31,18 @@ export class Gallery extends Component {
     return (
       <>
         <SearchForm getQuery={this.getQuery} />
+        <Grid>
+          {this.state.photos.map(photo => {
+            return (
+              <GridItem key={photo.id}>
+                <CardItem>
+                  <img src={photo.src.medium} alt={photo.alt} />
+                </CardItem>
+              </GridItem>
+            );
+          })}
+        </Grid>
+
         <Text textAlign="center">Sorry. There are no images ... 😭</Text>
       </>
     );
